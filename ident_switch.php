@@ -159,7 +159,20 @@ class ident_switch extends rcube_plugin
 	{
 		$iid = $_SESSION['iid' . self::MY_POSTFIX];
 		if (!is_numeric($iid) || $iid == -1)
-			return $args;
+		{
+			self::write_log('no identity switch is selected... trying to find related smtp server from the from header');
+			$requestFrom = rcube_utils::get_input_value('_from', rcube_utils::INPUT_POST);
+			if (empty($requestFrom)) {
+				self::write_log('no _from post parameter found... falling back to original default config');
+				return $args;
+			} else {
+				$iid = intval($requestFrom);
+				if ($iid == 0) {
+					self::write_log('falling back to original default config as _from post field is no integer: ' . $_POST['_from']); 
+					return $args;
+				}
+			}
+		}
 
 		$rc = rcmail::get_instance();
 
